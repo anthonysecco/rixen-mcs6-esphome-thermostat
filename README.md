@@ -37,7 +37,10 @@ Follow these steps to prepare, physically install, and configure the Undermount 
 Before physically installing your thermostat, it's best to program it via USB at your computer.
 
 1. Connect the Undermount AC Thermostat to your computer using a USB cable.
-2. Use the button provided in the project (or in your ESPHome dashboard) to install the **pre-built firmware** directly to the ESPHome HVAC Controller via USB from a compatible browser.
+2. Use the 'install firmware' link below to install the **pre-built firmware** found [here](https://github.com/anthonysecco/rixen-mcs6-esphome-thermostat/blob/main/rixen-mcs6-thermostat.yaml) directly to the ESPHome HVAC Controller via USB from a compatible browser.
+
+   🚀[Install Firmware](https://esphome.github.io/web-installer/?config_url=https://raw.githubusercontent.com/anthonysecco/rixen-mcs6-esphome-thermostat/main/rixen-mcs6-thermostat.yaml)
+   
 3. Once installed, a red LED should start blinking on the device, and a wireless network named **"Rixen MCS6"** will be available.
 4. The thermostat is now ready for physical installation.
 
@@ -45,7 +48,7 @@ Before physically installing your thermostat, it's best to program it via USB at
 
 ### 2. **Physical Installation**
 
-**Important:** Before proceeding, turn off power to the **Rixen MCS6 controller**.  Additionally, please ensure the DC power cable is unpowered when connecting to it to the thermostat.
+⚠️**Important:** Before proceeding, turn off power to the **Rixen MCS6 controller**.  Additionally, please ensure the DC power cable is unpowered when connecting to it to the thermostat.
 
 ---
 
@@ -258,6 +261,4 @@ Permission is hereby granted to any person obtaining a copy of this software and
 The Software is provided **"as is"**, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the authors be liable for any claim, damages, or other liability arising from the use of the Software.
 
 ## **Clarification of Non-Commercial Use**
-**Non-commercial use** means the use of this software for personal purposes or academic projects, without any financial gain or benefit. If you wish to use this project for commercial purposes, please [contact the author](mailto:youremail@example.com) to request permission.
-
-For further information or requests, please send me a DM.
+**Non-commercial use** means the use of this software for personal purposes or academic projects, without any financial gain or benefit. If you wish to use this project for commercial purposes, please contact the author to request permission.
