@@ -202,6 +202,10 @@ The auto fan speed is controlled using **PID (Proportional-Integral-Derivative)*
 - **Integral Control:** Gradually increases the fan speed as needed to overcome the thermal load and maintain the target temperature over time.
 - **Derivative Control:** Adjusts the fan speed based on how quickly the temperature error is changing. It acts as a damping factor, anticipating future error trends to reduce overshoot and oscillations, thereby stabilizing the system's response.
 
+This means the fan will gradually slow down as it reaches your set temperature.  It will also reacts to disturbance to quickly recover.   Here's an example below:
+
+![image](https://github.com/user-attachments/assets/64e91782-f609-418b-89d4-ffe2d0416bfb)
+
 The system also utilizes an enhanced idle mode to extract the residual heat from the system to maintain the set temperature and reduce short cycling.
 
 ## Heat Call Cycle
