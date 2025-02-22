@@ -38,7 +38,7 @@ Before physically installing your thermostat, it's best to program it via USB at
 
 1. Connect the Undermount AC Thermostat to your computer using a USB cable.
 2. Use the button provided in the project (or in your ESPHome dashboard) to install the **pre-built firmware** directly to the ESPHome HVAC Controller via USB from a compatible browser.
-3. Once installed, a red LED should start blinking on the device, and a wireless network named **"Rixen MCS6 Smart Thermostat"** will be available.
+3. Once installed, a red LED should start blinking on the device, and a wireless network named **"Rixen MCS6"** will be available.
 4. The thermostat is now ready for physical installation.
 
 ---
@@ -128,7 +128,7 @@ Insert the stripped wires into the correct terminals on the thermostat, and tigh
 
 ### 4. **Configure the Thermostat**
 
-1. Connect to the **"Rixen MCS6 Smart Thermostat"** network using the password: `12345678`.
+1. Connect to the **"Rixen MCS6"** network using the password: `12345678`.
 2. A **captive portal** will load. Select the Wi-Fi network where your **Home Assistant** server is running and provide your credentials.
 3. The thermostat will reboot and connect to your Wi-Fi network.
 
