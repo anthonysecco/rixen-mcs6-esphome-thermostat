@@ -183,8 +183,6 @@ You will find the following diagnostic sensors to understand what is being reque
 | **Electric Coil Call**              |  Shows if electric coil line is being called on the MCS6   |
 | **Constant Call**              |  Shows if constant line is being called on the MCS6   |
 
----
-
 ## Auto Fan Speed
 
 The **Auto Fan Speed** is designed to dynamically adjust the radiator fan speed to maintain a consistent and comfortable temperature in your RV. This feature helps **minimize noise** and **maximize comfort**.  If you want to understand how it works, the details are found in this section.
@@ -197,9 +195,7 @@ The auto fan speed is controlled using **PID (Proportional-Integral-Derivative)*
 
 The system also utilizes an enhanced idle mode to extract the residual heat from the system to maintain the set temperature and reduce short cycling.
 
----
-
-### Heat Call Cycle
+## Heat Call Cycle
 
 The heat cycle functions similarly to a standard thermostat, with a **±0.6°C** temperature buffer to reduce cycling when the minimum heat output exceeds the RV’s thermal load.
 
@@ -208,16 +204,14 @@ The heat cycle functions similarly to a standard thermostat, with a **±0.6°C**
 - Once the **set temperature** is reached, the fan reduces to **1% speed** and continues operating until the temperature exceeds **+0.6°C above the set temperature**.
 - At **+0.6°C above the set temperature**, the thermostat enters **Idle Mode**, shutting off the **furnace** and/or **electric coil**.
 
----
-
-### Idle Modes
+## Idle Modes
 
 The system supports two idle modes depending on whether **Constant Heat Mode** is enabled.
 
-#### **Standard Idle Mode (Constant Heat Enabled)**
+### **Standard Idle Mode (Constant Heat Enabled)**
 - If **Constant Heat Mode** is enabled (e.g., for continuous hot water production), the **fan remains off** during idle mode.
 
-#### **Enhanced Idle Mode (No Constant Heat)**
+### **Enhanced Idle Mode (No Constant Heat)**
 - If **Constant Heat Mode** is **not enabled**, the fan continues running to help maintain the set temperature.
 - The **radiator fan behavior**:
   - Maintains a **1% speed** when the temperature is within **0.6°C of the set temperature**.
@@ -229,8 +223,6 @@ The **fan will turn off** under the following conditions:
 - **30 minutes** have passed since idle mode started (to avoid prolonged cold air circulation).
 
 **Note:** Fan speed and on/off states update every **30 seconds**.
-
----
 
 ## Constant Heat (Hot Water)
 
