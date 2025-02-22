@@ -189,6 +189,7 @@ You will find the following diagnostic sensors to understand what is being reque
 | **Constant Call**              |  Shows if constant line is being called on the MCS6   |
 
 You can arrange the thermostat as you wish, I've found the below useful:
+
 ![image](https://github.com/user-attachments/assets/6787f014-b0a2-41b2-96e4-1e22866104d5)
 
 ## Auto Fan Speed
