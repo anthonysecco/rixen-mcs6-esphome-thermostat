@@ -1,0 +1,587 @@
+## Written by https://github.com/anthonysecco
+# To be used with Undermount AC ESP Home Thermostat and Rixen MCS6 with Radiator Fan.
+
+# Output 1 - Electric (MCS6 Pin 5)
+# Output 2 - Furnace (MCS6 Pin 6)
+# Output 3 - Constant (MCS6 Pin 7)
+# Output 4 - T_Stat (MCS6 Pin 4)
+# Output 5 - Radiator Fan (Direct to Fan Blue Wire)
+# Output 6 - Optional Recirculating Pump (Direct to Relay or PWM driver of Pump.  Limit 1A)
+
+# Substitution Variables
+################################################################################
+substitutions:
+    name: "rixen-mcs6"
+    friendly_name: "Rixen MCS6"
+  
+  # Globals
+  ################################################################################
+  globals:
+    - id: pid_output
+      type: float
+    - id: pid_integral
+      type: float
+    - id: previous_error
+      type: float
+    - id: last_idle_time
+      type: long
+      restore_value: no
+  
+  # Board Configuration
+  ################################################################################
+  esphome:
+    name: "${name}"
+    friendly_name: "${friendly_name}"
+    name_add_mac_suffix: False
+    project:
+      name: itnomad.rixenmcs6
+      version: "1.0"
+    on_boot:
+      priority: -10  # Lower priority ensures this runs after other boot actions
+      then:
+        - lambda: |-
+            id(pid_output) = 0.0;
+            id(pid_integral) = 0.0;
+            id(previous_error) = 0.0;
+  
+  esp32:
+    board: esp32-s3-devkitc-1
+    framework:
+      type: arduino
+  
+  # Throttles writing parameters to the flash memory to reduce memory wear.
+  preferences:
+    flash_write_interval: 15min
+  
+  # Enable logging
+  ################################################################################
+  logger:
+  
+  # Enable Home Assistant API
+  ################################################################################
+  api:
+  
+  # OTA
+  ################################################################################
+  ota:
+    - platform: esphome
+  
+  # Wi-Fi
+  ################################################################################
+  wifi:
+  
+    # Sets up Wi-Fi access point
+    ap:
+      password: "12345678"
+  
+  # Sets up captive portal so user can connect to their local Wi-Fi Network.
+  captive_portal:
+  
+  # Enabled Wi-Fi configuration over Serial/USB
+  improv_serial:
+  
+  # LEDs
+  ################################################################################
+  
+  # ESP Home Status LED
+  light:
+    - platform: status_led
+      name: "status led"
+      internal: true
+      output: statusoutput
+    
+    # ESP32-S3 Onboard LED
+    - platform: neopixelbus
+      variant: WS2812
+      pin: 48
+      num_leds: 1
+      name: "Status LED RGB"
+      internal: True
+      restore_mode: ALWAYS_OFF
+      id: statusledlight
+      icon: "mdi:led-outline"
+      effects:
+        - strobe:
+            name: "Not Connected"
+            colors:
+              - state: True
+                brightness: 50%
+                red: 100%
+                green: 0%
+                blue: 0%
+                duration: 1s
+              - state: False
+                duration: 1s
+        - pulse:
+            name: "Pulse"
+            update_interval: 2s
+            min_brightness: 40%
+            max_brightness: 60%
+        - pulse:
+            name: "Pulse Fast"
+            transition_length: 0.25s
+            update_interval: 0.5s
+            min_brightness: 40%
+            max_brightness: 60%
+  
+  output:
+    - platform: template
+      id: statusoutput
+      type: binary
+      write_action:
+        - if:
+            condition:
+               lambda: return state > 0;
+            then:
+              - light.turn_on: 
+                  id: statusledlight
+                  effect: "Not Connected"
+            else:
+              - light.turn_off: 
+                  id: statusledlight
+  
+    # Output 5 - Radiator Fan
+    - platform: ledc
+      pin: 20
+      id: rad_fan_pwm
+      frequency: 21500 Hz
+      min_power: 0
+      max_power: 1
+  
+  # I2C Bus
+  ################################################################################
+  # Sets up Temp/Humidity Sensor
+  i2c:
+    sda: GPIO21
+    scl: GPIO14
+    scan: true
+    id: bus_a
+  
+  # Sensors
+  ################################################################################
+  sensor:
+    # Setup the onboard SHT30 temp/humidity sensor
+    - platform: sht3xd
+      i2c_id: bus_a
+      id: onboard_sht30
+      temperature:
+        name: "Temperature"
+        id: onboard_temperature
+      humidity:
+        name: "Humidity"
+        id: onboard_humidity
+      update_interval: 30s
+  
+    # Fan speed sensor
+    - platform: template
+      id: fan_speed_diagnostic
+      name: Radiator Fan Speed
+      accuracy_decimals: 0
+      unit_of_measurement: "%"
+      device_class: ""
+      entity_category: "diagnostic"
+      icon: mdi:fan
+      filters: 
+        - lambda: |-
+            if(id(rad_fan).state) {
+              return ((x * .01) * (id(rad_fan_pwm).get_max_power() - id(rad_fan_pwm).get_min_power()) + id(rad_fan_pwm).get_min_power()) * 100;
+            } else {
+              return 0.0;
+            }
+  
+  binary_sensor:
+    - platform: template
+      name: "Electric Coil Call Status"
+      id: electric_coil_diagnostic
+      icon: mdi:heating-coil
+      entity_category: diagnostic
+      disabled_by_default: true
+      lambda: |-
+        return id(electric_switch).state;
+  
+    - platform: template
+      name: "Furnace Call Status"
+      id: furnace_diagnostic
+      icon: mdi:gas-burner
+      entity_category: diagnostic
+      disabled_by_default: true
+      lambda: |-
+        return id(furnace_switch).state;
+  
+    - platform: template
+      name: "Constant Heat Call Status"
+      id: constant_heat_diagnostic
+      icon: mdi:water-thermometer
+      entity_category: diagnostic
+      disabled_by_default: true
+      lambda: |-
+        return id(constant_call).state;
+  
+    - platform: template
+      name: "Thermostat Call Status"
+      id: thermostat_call_diagnostic
+      icon: mdi:thermostat
+      entity_category: diagnostic
+      disabled_by_default: true
+      lambda: |-
+        return id(tstat_call).state;
+  
+    - platform: template
+      name: "Recirculating Pump Status"
+      id: output_6_diagnostic
+      icon: mdi:pump
+      entity_category: diagnostic
+      disabled_by_default: true
+      lambda: |-
+        return id(output_6).state;
+  
+  # Switches
+  ################################################################################
+  switch:
+    # Output 1 - Electric Mode On/Off
+    - platform: gpio
+      id: electric_call
+      name: Electic Coil Call
+      pin: 7
+      restore_mode: ALWAYS_OFF
+      internal: True
+  
+    - platform: template
+      name: "Electric"
+      id: electric_switch
+      icon: mdi:heating-coil
+      turn_on_action:
+        - if:
+            condition:
+              lambda: 'return (id(rixen_thermostat).action != CLIMATE_ACTION_IDLE) || (id(constant_call).state == true);'
+            then:
+              - switch.turn_on: electric_call
+              - lambda: id(electric_switch).publish_state(true);
+      turn_off_action:
+        - switch.turn_off: electric_call
+        - lambda: id(electric_switch).publish_state(false);
+      restore_mode: ALWAYS_OFF
+      optimistic: false
+  
+    # Output 2 - Furnace Mode On/Off
+    - platform: gpio
+      id: furnace_call
+      name: Furnace Call
+      pin: 9
+      restore_mode: ALWAYS_OFF
+      internal: true
+  
+    - platform: template
+      name: "Furnace"
+      id: furnace_switch
+      icon: mdi:gas-burner
+      turn_on_action:
+        - if:
+            condition:
+              lambda: 'return (id(rixen_thermostat).action != CLIMATE_ACTION_IDLE) || (id(constant_call).state == true);'
+            then:
+              - switch.turn_on: furnace_call
+              - lambda: id(furnace_switch).publish_state(true);
+      turn_off_action:
+        - switch.turn_off: furnace_call
+        - lambda: id(furnace_switch).publish_state(false);
+      restore_mode: ALWAYS_OFF
+      optimistic: false
+  
+    # Output 3 - Constant On/Off
+    - platform: gpio
+      id: constant_call
+      name: Constant Heat
+      icon: mdi:water-thermometer
+      pin: 8
+      restore_mode: ALWAYS_OFF
+      internal: false
+  
+    # Output 4 - Thermostat On/Off
+    - platform: gpio
+      id: tstat_call
+      name: Thermostat Call
+      pin: 10
+      restore_mode: ALWAYS_OFF
+      internal: true
+  
+    # Output 5 - Previously Defined in Output
+  
+    # Output 6 - Recirculation Pump On/Off
+    - platform: gpio
+      id: output_6
+      icon: mdi:pump
+      name: Recirculating Pump
+      pin: 19
+      restore_mode: ALWAYS_OFF
+      internal: False
+      on_turn_on:
+      - delay: 60s # Limits pump on-time to reduce wear
+      - switch.turn_off: output_6
+  
+  # Fans
+  ################################################################################
+  fan:
+    - platform: speed
+      name: "Radiator Fan"
+      output: rad_fan_pwm
+      id: rad_fan
+      internal: True
+      on_turn_off:
+        - lambda: id(fan_speed_diagnostic).publish_state(id(rad_fan).speed);
+      on_speed_set:
+        - lambda: id(fan_speed_diagnostic).publish_state(id(rad_fan).speed);
+    
+  # Climate
+  ################################################################################
+  climate:
+    - platform: thermostat
+      name: "Thermostat"
+      id: rixen_thermostat
+      sensor: onboard_temperature # You may change this to utilize other sensors in home assistant.  Default is the onboard sensor.
+      min_heating_off_time: 60s # Adjust as desired
+      min_heating_run_time: 180s # Don't decrease less than 180s
+      min_idle_time: 60s # Adjust as desired
+      visual:
+        temperature_step: 1.0 # Adjust as desired
+        min_temperature: 40 °F # Adjust as desired
+        max_temperature: 75 °F # Adjust as desired
+    
+      # Thermostat states
+      heat_action:
+        - if:
+            condition:
+              lambda: 'return id(constant_call).state == false;'
+            then:
+              - switch.turn_on: tstat_call
+              - fan.turn_on: rad_fan
+              # Check template switches and turn on the respective GPIO.
+              - if:
+                  condition:
+                    switch.is_on: furnace_switch
+                  then:
+                    - switch.turn_on: furnace_call
+              - if:
+                  condition:
+                    switch.is_on: electric_switch
+                  then:
+                    - switch.turn_on: electric_call
+            else:
+              # Turn on the thermostat GPIO and radiator fan.
+              - switch.turn_on: tstat_call
+              - fan.turn_on: rad_fan
+      idle_action:
+        - lambda: 'id(last_idle_time) = millis();' # Starts the idle time clock.
+        - if:
+            condition:
+              lambda: 'return (id(constant_call).state == false) && (id(rixen_thermostat).fan_mode == CLIMATE_FAN_AUTO);'
+            then:
+              - logger.log: "CONSTANT is OFF. tstat_call will remain on. Turning off Furnace and Electric Coil."
+              - switch.turn_off: furnace_call
+              - switch.turn_off: electric_call
+            else:
+              - logger.log: "CONSTANT is ON or Climate Fan is not AUTO. Turning off tstat_call and radiator fan."
+              - switch.turn_off: tstat_call
+              - fan.turn_off: rad_fan
+      off_mode:
+        - switch.turn_off: tstat_call
+        - fan.turn_off: rad_fan
+      
+      # Define preset on boot
+      on_boot_restore_from: memory
+  
+      # Define presets
+      default_preset: Standby
+      preset:
+        - name: Home
+          default_target_temperature_low: 70 °F
+          fan_mode: AUTO
+          mode: heat
+        - name: Standby
+          default_target_temperature_low: 72 °F
+          fan_mode: AUTO
+          mode: "OFF"
+        - name: Sleep
+          default_target_temperature_low: 64 °F
+          fan_mode: AUTO
+          mode: heat
+      
+      # Fan modes
+      min_fan_mode_switching_time: 1s
+      fan_only_cooling: true
+      fan_mode_low_action:
+        - logger.log: "Fan is Low"
+      fan_mode_medium_action:
+        - logger.log: "Fan is Medium"
+      fan_mode_high_action:
+        - logger.log: "Fan is High"
+      fan_mode_auto_action:
+        - logger.log: "Fan is Auto"
+  
+      heat_deadband: 0.6°C # Heat will turn on when 0.6C below set temp
+      heat_overrun: 0.6°C # Heat will turn off when 0.6C above set temp
+      
+      # Run the following scripts when state changes
+      on_state:
+        - script.execute: update_fan_speed # Updates fan speed diagnostic and used for low/med/high fan speeds.
+        - script.execute: status_light_update # Updates LED on the thermostat controller
+  
+  # Scripts
+  ################################################################################
+  
+  # Calls the PID Logic script every 30 seconds
+  interval:
+    - interval: 30s # Do not change this.
+      then:
+        - if:
+            condition:
+              # Check if the fan mode is auto and the mode is heat
+              lambda: 'return id(rixen_thermostat).fan_mode == CLIMATE_FAN_AUTO && id(rixen_thermostat).mode == CLIMATE_MODE_HEAT;'
+  
+            then:
+              # Run PID logic to update the fan speed
+              - lambda: |-
+                  // Set constants to drive PID computation.  For more details watch https://www.youtube.com/watch?v=dZ8lzDi3cXY
+                  // Future enhancement may bring Kp, Ki, Kd constant values into Home Assistant UI to be tuned on the fly.
+                  // Be careful not to make drastic changes to Kp, Ki, or Kd.  Start small.
+                  const float Kp = 0.1;  // Proportional gain - at '0.1' the fan will achieve 100% if temp gap is 10C.  Increase this value to ramp the fan speed up sooner.
+                  const float Ki = 0.001;  // Integral gain - at '0.001' the fan will achieve 100% if temp gap is 1C over 15 minutes.  Increase this value to ramp the fan speed up sooner.
+                  const float Kd = 0.01; // Derivative gain - Not really needed, reduces PID output if approaching to quickly.  '0.01' provides a slide buffer.
+                  const float integral_limit = 900.0; // Limits integral gain
+  
+                  // Read current and target temperatures
+                  float current_temp = id(rixen_thermostat).current_temperature;
+                  float target_temp = id(rixen_thermostat).target_temperature;
+                  float error = target_temp - current_temp;
+  
+                  // Update integral term and apply clamping
+                  id(pid_integral) += error;
+                  id(pid_integral) = fmax(-integral_limit, fmin(id(pid_integral), integral_limit));
+  
+                  // Calculate derivative term
+                  float derivative = error - id(previous_error);
+  
+                  // Compute PID output
+                  float output = (Kp * error) + (Ki * id(pid_integral)) + (Kd * derivative);
+  
+                  // Clamp output to a valid range (0 to 1)
+                  if (output < 0) output = 0;
+                  if (output > 1) output = 1;
+  
+                  // Update the global PID value
+                  id(pid_output) = output;
+  
+                  // The following can log PID values for debugging
+                  // ESP_LOGD("PID", "PID Output (Before Clamp): %f", output);
+                  // ESP_LOGD("DEBUG", "PID Output: %f", id(pid_output));
+                  // ESP_LOGD("DEBUG", "PID Integral: %f", id(pid_integral));
+                  // ESP_LOGD("DEBUG", "Previous Error: %f", id(previous_error));
+  
+                  // Update fan speed
+                  {
+                    auto call = id(rad_fan).make_call();
+                    call.set_speed(id(pid_output) * 100);
+                    call.perform();
+                  }
+  
+                  // The following prevent cold air unnecssarily when in idle mode.
+                  // When IDLE turn off fan 0.6C over set temp, if fan is over 20%, or if idle for more than 30min (1800000ms).
+                  if (((error < -0.6) || (id(pid_output) > 0.20)) || (((millis() - id(last_idle_time)) > 1800000) && id(rixen_thermostat).action == CLIMATE_ACTION_IDLE)) {
+                      id(rad_fan).turn_off();
+                      id(tstat_call).turn_off();
+                  } 
+                  else {
+                      id(rad_fan).turn_on();
+                      id(tstat_call).turn_on();
+                  }
+  
+                  // Save current error for the next cycle
+                  id(previous_error) = error;
+  
+  script:
+  
+    # Variable Fan Speed Configuration
+    - id: update_fan_speed
+      then:
+        - lambda: |-
+            // Manual fan speed settings
+            if (id(rixen_thermostat).fan_mode == CLIMATE_FAN_LOW) {
+              auto call = id(rad_fan).make_call();
+              call.set_speed(1); // 1% speed
+              call.perform();
+            }
+            if (id(rixen_thermostat).fan_mode == CLIMATE_FAN_MEDIUM) {
+              auto call = id(rad_fan).make_call();
+              call.set_speed(25); // 25% speed
+              call.perform();
+            }
+            if (id(rixen_thermostat).fan_mode == CLIMATE_FAN_HIGH) {
+              auto call = id(rad_fan).make_call();
+              call.set_speed(100); // 100% speed
+              call.perform();
+            }
+        - lambda: id(fan_speed_diagnostic).publish_state(id(rad_fan).speed);
+  
+    # Status Light Configuration
+    - id: status_light_update
+      then:
+        # Climate Off - Faint Blue
+        - if:
+            condition:
+              lambda: 'return id(rixen_thermostat).mode == CLIMATE_MODE_OFF;'
+            then:
+              - light.turn_on:
+                  id: statusledlight
+                  red: 0%
+                  green: 0%
+                  blue: 100%
+                  brightness: 30%
+                  effect: "None"
+        # Climate Idle - Faint Orange
+        - if:
+            condition:
+              lambda: 'return id(rixen_thermostat).action == CLIMATE_ACTION_IDLE;'
+            then:
+              - light.turn_on: 
+                  id: statusledlight
+                  red: 50%
+                  green: 35%
+                  blue: 0%
+                  brightness: 20%
+                  effect: "None"
+        # Climate Heat - Pulse Orange
+        - if:
+            condition:
+              lambda: 'return id(rixen_thermostat).action == CLIMATE_ACTION_HEATING;'
+            then:
+              - if:
+                  condition:
+                    switch.is_on: electric_call
+                  then:
+                    - light.turn_on: 
+                        id: statusledlight
+                        red: 50%
+                        green: 35%
+                        blue: 0%
+                        brightness: 40%
+                        effect: "Pulse Fast"
+                  else:
+                    - light.turn_on: 
+                        id: statusledlight
+                        red: 50%
+                        green: 35%
+                        blue: 0%
+                        brightness: 40%
+                        effect: "Pulse"
+        # Climate Fan - Pulse Cyan
+        - if:
+            condition:
+              lambda: 'return id(rixen_thermostat).mode == CLIMATE_MODE_FAN_ONLY;'
+            then:
+              - light.turn_on: 
+                  id: statusledlight
+                  red: 0%
+                  green: 100%
+                  blue: 100%
+                  brightness: 40%
+                  effect: "Pulse"            
