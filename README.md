@@ -166,7 +166,7 @@ You've completed installation and now ready to operate!
 
 Once installed and configured, the ESPHome thermostat provides the following controls and sensors in Home Assistant:
 
-![image](https://github.com/user-attachments/assets/00ce18bd-bfc6-4bc5-a26a-35bf2be9a258)
+![image](https://github.com/user-attachments/assets/befb862a-5e10-4239-9be1-cd9b8dab79aa)
 
 | **Entity**                    | **Description**                                                   |
 |------------------------------|-------------------------------------------------------------------|
