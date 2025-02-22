@@ -241,6 +241,8 @@ To request hot water, the user needs to enable their heat source (**furnace** an
 
 Output 6 on the thermostat can be used to control a relay or PWM controller for a recirculating pump, provided your hot water lines are configured for it. This feature is preconfigured but disabled by default. To enable it, simply activate it in Home Assistant.
 
+The output is limited to 1A.  Inductive loads like a pumps draw a lot of power upon startup.  Therefore, it's best use a relay or PWM controller to drive the load and the output from the thermostat is simply a signal wire.  In my case I use a cheap PWM controller [here](https://www.amazon.com/ANMBEST-High-Power-Adjustment-Electronic-Brightness/dp/B09KGDDS37/).
+
 A 60-second minimum runtime safeguard is in place by default. You can adjust this duration in the **ESPHome YAML editor**.
 
 You can control the recirculating pump in the following ways:
@@ -250,7 +252,7 @@ You can control the recirculating pump in the following ways:
 
 ---
 # Special Shoutout
-A special thanks to Mike Goubeaux for the inspiration with his work in the Undermount AC thermostat and the MCS7 CANbus thermosat.
+A special thanks to Mike Goubeaux for the inspiration with his work in the Undermount AC thermostat and the MCS7 CANbus thermostat.
 
 # License: Personal Use Only (Non-Commercial)
 
