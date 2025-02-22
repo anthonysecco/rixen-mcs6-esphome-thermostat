@@ -12,7 +12,7 @@ My installation.  The undermount controller is mounted to the face of the Rixen 
 Before proceeding with the installation, ensure you have the following components and tools:
 
 1. **ESPHome Thermostat by Undermount AC** - *Required*  
-   - This is the main thermostat unit being controlled by the ESP32.
+   - This is the main thermostat unit being controlled by the ESP32.  The link to buy it is [here](https://undermountac.com/products/esphome-thermostat-controller-12-30v-dc).
 
 2. **Sacrificial Cat5e Cable** - *Required*  
    - Used to connect the thermostat to the MCS6 controller. The length depends on where you wish to place the thermostat.
