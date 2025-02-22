@@ -38,22 +38,22 @@ Before physically installing your thermostat, it's best to program it via USB at
 
 1. Connect the Undermount AC Thermostat to your computer using a USB cable.
 2. Use the button provided in the project (or in your ESPHome dashboard) to install the **pre-built firmware** directly to the ESPHome HVAC Controller via USB from a compatible browser.
-3. Once installed, a red LED should start blinking on the device, and a wireless network named **"test"** will be available.
+3. Once installed, a red LED should start blinking on the device, and a wireless network named **"Rixen MCS6 Smart Thermostat"** will be available.
 4. The thermostat is now ready for physical installation.
 
 ---
 
 ### 2. **Physical Installation**
 
-**Important:** Before proceeding, turn off power to the **Rixen MCS6 controller**.
+**Important:** Before proceeding, turn off power to the **Rixen MCS6 controller**.  Additionally, please ensure the DC power cable is unpowered when connecting to it to the thermostat.
 
 ---
 
 #### **Step 1: Determine Installation Location**
 
 - Select a location where you want the **temperature probe** to be positioned.  
-- The probe is about 1 meter long, offering some flexibility.  
-- **Recommended Position:** Mount the probe 4 to 5 feet from the floor of the van, away from doors or windows to avoid inaccurate readings.
+- The probe is about 1 meter long, offering some flexibility on where the actual thermostat will be located.
+- **Recommended Position:** Mount the probe 4 to 5 feet from the floor of the van, away from doors or windows to avoid inaccurate readings.  It's also advised to locate it away from the radiator fan.
 
 ---
 
@@ -93,7 +93,7 @@ Before physically installing your thermostat, it's best to program it via USB at
 
 #### **Step 5: Power Wiring**
 
-- Run a **12V or 24V DC power wire** to the thermostat. Ensure the wires are unpowered before connecting.
+- Run a **12V or 24V DC power wire** to the thermostat. Ensure the wires are unpowered.
 - Strip ¼ inch from both the positive and negative wires for proper connection.
 - Place the cable to the side for now.
 
@@ -187,7 +187,7 @@ You will find the following diagnostic sensors to understand what is being reque
 
 ## Auto Fan Speed
 
-The **Auto Fan Speed** is designed to dynamically adjust the radiator fan speed to maintain a consistent and comfortable temperature in your RV. This feature helps **minimize noise** and **maximize comfort**.  If you want to understand how it works, the detilas are found in this section.
+The **Auto Fan Speed** is designed to dynamically adjust the radiator fan speed to maintain a consistent and comfortable temperature in your RV. This feature helps **minimize noise** and **maximize comfort**.  If you want to understand how it works, the details are found in this section.
 
 The auto fan speed is controlled using **PID (Proportional-Integral-Derivative)** control logic:
 
@@ -195,56 +195,57 @@ The auto fan speed is controlled using **PID (Proportional-Integral-Derivative)*
 - **Integral Control:** Gradually increases the fan speed as needed to overcome the thermal load and maintain the target temperature over time.
 - **Derivative Control:** Adjusts the fan speed based on how quickly the temperature error is changing. It acts as a damping factor, anticipating future error trends to reduce overshoot and oscillations, thereby stabilizing the system's response.
 
-The system utilized an enhanced idle mode to extract the residual heat from the system to maintain the set temperature and reduce short cycling.
+The system also utilizes an enhanced idle mode to extract the residual heat from the system to maintain the set temperature and reduce short cycling.
 
 ---
 
 ### Heat Call Cycle
 
-The heat cycle works like any standard thermostat.  There's a overrun of +0.6C above the **set temperature**  and a -0.6C deadband below the **set temperature**.  This reduce cycling when the minimum heat output exceeds the thermal load of the room.
+The heat cycle functions similarly to a standard thermostat, with a **±0.6°C** temperature buffer to reduce cycling when the minimum heat output exceeds the RV’s thermal load.
 
-When the actual temperature drops to below **-0.6°F of the set temperature**, the thermostat will:
-  - Call for heat by turning on the **furnace**, **electric coil**, and **radiator fan**.
-
-The **radiator** fan will adjust its speed based on PID control logic to smoothly arrive to the set temperature in 30 second intervals.
-
-Once the **set temperature** has been reached, then fan will reach its minimum speed of 1% and will continue to operate until +0.6C above **set temperature** 
-
-Once the thermostat detects that **+0.6C** above the **set temperature** has been reached, it will move to **idle mode** turning off the **furnace** and/or **electric coil**.
+- When the temperature drops **0.6°C** below the set temperature, the thermostat calls for heat, activating the **furnace**, **electric coil**, and **radiator fan**.
+- The **radiator fan** adjusts its speed using **PID control logic**, making smooth adjustments every **30 seconds** to reach the target temperature.
+- Once the **set temperature** is reached, the fan reduces to **1% speed** and continues operating until the temperature exceeds **+0.6°C above the set temperature**.
+- At **+0.6°C above the set temperature**, the thermostat enters **Idle Mode**, shutting off the **furnace** and/or **electric coil**.
 
 ---
 
-### Enhanced Idle Mode (No Constant Heat)
+### Idle Modes
 
-Enhanced Idle Mode continues to operate the fan in a way to maintain your set temperature.
+The system supports two idle modes depending on whether **Constant Heat Mode** is enabled.
 
-The **radiator fan** will continue to operate during idle mode to maintain your set temperature.
-   - The fan will maintain a speed of 1% when the room is at **set temperature** to +0.6C above **set temperature**.
-   - The fan will increase speed if it detects the room is beginning to fall below the **set temperature**
-     
-The fan will turn off in the following conditions:
-   - The room is warmer than **+0.6C** above the set temperature.
-   - The fan speed reaches above **20%** to prevent cold air from blowing.
-   - If **30 minutes** have passed since idle mode has started to prevent cold air from blowing.
+#### **Standard Idle Mode (Constant Heat Enabled)**
+- If **Constant Heat Mode** is enabled (e.g., for continuous hot water production), the **fan remains off** during idle mode.
 
-Fan speed and on/off modes only change every 30 seconds.
+#### **Enhanced Idle Mode (No Constant Heat)**
+- If **Constant Heat Mode** is **not enabled**, the fan continues running to help maintain the set temperature.
+- The **radiator fan behavior**:
+  - Maintains a **1% speed** when the temperature is within **0.6°C of the set temperature**.
+  - Increases speed if the temperature begins to drop below the **set temperature**.
 
-### Standard Idle Mode (Constant Heat)
+The **fan will turn off** under the following conditions:
+- The room temperature exceeds **+0.6°C above the set temperature**.
+- The fan speed reaches **above 20%** (to prevent cold air from blowing).
+- **30 minutes** have passed since idle mode started (to avoid prolonged cold air circulation).
 
-If constant mode is on (for constant hot water), the fan will not operating during idle mode.
+**Note:** Fan speed and on/off states update every **30 seconds**.
 
 ---
-## Hot Water
+
+## Constant Heat (Hot Water)
 
 To request hot water, the user needs to enable their heat source (**furnace** and/or **electric coil**) and enable **Constant**.  Once the system warms up the glycol, the heat exchange block will begin to transfer heat energy.
 
 ### Optional Recirculating Pump
 
-Output 6 on the thermostat may be used to turn off/on a relay or PWM controller that drives a recirculating pump if your hot water lines are configured as such.  This is configured but disabled by default.  Simply enable in Home Assistant to use.
+Output 6 on the thermostat can be used to control a relay or PWM controller for a recirculating pump, provided your hot water lines are configured for it. This feature is preconfigured but disabled by default. To enable it, simply activate it in Home Assistant.
 
-A safeguard of 60 seconds of on-time is preconfigured.  You may adjust this to your likely in the ESPHome YAML editor.
+A 60-second minimum runtime safeguard is in place by default. You can adjust this duration in the **ESPHome YAML editor**.
 
-You may configure a button in the UI to activate the recirculating pump.  A future enhancement may activate the recirculating pump periodically if 'constant' mode is active.
+You can control the recirculating pump in the following ways:
+- **Manual Control:** Add a button in the Home Assistant UI.
+- **Automated Control:** Create an automation to activate it based on your preferences.
+- **Future Enhancement:** A future update may allow the recirculating pump to activate periodically when **Constant Heat Mode** is enabled.
 
 ---
 # License: Personal Use Only (Non-Commercial)
