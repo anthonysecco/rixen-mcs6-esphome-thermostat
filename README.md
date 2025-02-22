@@ -166,6 +166,8 @@ You've completed installation and now ready to operate!
 
 Once installed and configured, the ESPHome thermostat provides the following controls and sensors in Home Assistant:
 
+![image](https://github.com/user-attachments/assets/00ce18bd-bfc6-4bc5-a26a-35bf2be9a258)
+
 | **Entity**                    | **Description**                                                   |
 |------------------------------|-------------------------------------------------------------------|
 | **Climate Card**              | Allows control of the target temperature and fan operation.      |
@@ -185,6 +187,9 @@ You will find the following diagnostic sensors to understand what is being reque
 | **Furnace Call**              |  Shows if furnace line is being called on the MCS6   |
 | **Electric Coil Call**              |  Shows if electric coil line is being called on the MCS6   |
 | **Constant Call**              |  Shows if constant line is being called on the MCS6   |
+
+You can arrange the thermostat as you wish, I've found the below useful:
+![image](https://github.com/user-attachments/assets/6787f014-b0a2-41b2-96e4-1e22866104d5)
 
 ## Auto Fan Speed
 
@@ -243,6 +248,9 @@ You can control the recirculating pump in the following ways:
 - **Future Enhancement:** A future update may allow the recirculating pump to activate periodically when **Constant Heat Mode** is enabled.
 
 ---
+# Special Shoutout
+A special thanks to Mike Goubeaux for the inspiration with his work in the Undermount AC thermostat and the MCS7 CANbus thermosat.
+
 # License: Personal Use Only (Non-Commercial)
 
 This project is released under a **Personal Use License**, which restricts usage to **non-commercial purposes only**. Please read the terms carefully before using or modifying the code.
