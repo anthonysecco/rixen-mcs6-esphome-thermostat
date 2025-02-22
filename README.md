@@ -2,7 +2,7 @@
 
 This project implements an ESPHome-based thermostat controller by **Undermount AC** for the **Rixen MCS6 heating system**. 
 
-The Undermount AC thermostat replaces the standard Rixen thermostat so that the Rixen MCS6 can be easily controlled through Home Assistant.  The thermostat that is found in Home Assistant reproduces the original system controls while adding an 'auto' fan speed feature uses PID control logic to adjust the radiator fan speed to maintain the set temperature.
+The Undermount AC thermostat replaces the standard Rixen thermostat so that the Rixen MCS6 can be easily controlled through Home Assistant.  The thermostat that is found in Home Assistant reproduces the original system controls while adding two enhancements.  1) An 'auto' fan speed feature uses PID control logic to adjust the radiator fan speed to maintain the set temperature and 2) an **Enhanced Idle Mode** to reduce system short cycling.
 
 ![image](https://github.com/user-attachments/assets/790c5939-7889-453f-8d93-3fc509bb0d23)
 My installation.  The undermount controller is mounted to the face of the Rixen MCS6.
@@ -77,14 +77,17 @@ Before physically installing your thermostat, it's best to program it via USB at
 | White with Blue Stripe      | Thermostat Call            |
 
 - Leave the remaining four wires unused. You can cut or secure them as needed.
+- Place the cable to the side for now.
 
 ---
 
 #### **Step 4: Wire the Radiator Fan**
 
-- Run a wire from the **thermostat** to the **radiator fan**.
+- Run a single wire of your choosing from the **thermostat** to the **radiator fan**.  This can be small gauge wire as it's just a signal wire.
 - Locate the **blue PWM wire** on the radiator fan (sometimes tucked inside the outer jacket).
-- Connect the signal wire to the blue wire at the fan, and strip the other end of the wire (¼ inch) for connection to the thermostat.
+- Connect the signal wire to the blue wire at the fan
+- Strip the other end of the wire (¼ inch) for connection to the thermostat.
+- Place the cable to the side for now.
 
 ---
 
@@ -92,6 +95,7 @@ Before physically installing your thermostat, it's best to program it via USB at
 
 - Run a **12V or 24V DC power wire** to the thermostat. Ensure the wires are unpowered before connecting.
 - Strip ¼ inch from both the positive and negative wires for proper connection.
+- Place the cable to the side for now.
 
 ---
 
@@ -106,7 +110,7 @@ Insert the stripped wires into the correct terminals on the thermostat, and tigh
 | **Out 3**                    | Orange        |
 | **Out 4**                    | White with Blue Stripe |
 | **Out 5**                    | Radiator fan signal wire |
-| **Out 6**                    | Unused                        |
+| **Out 6**                    | Optional recirculating pump   |
 | **POS**                      | 12V or 24V Positive Wire      |
 | **NEG**                      | Chassis Ground                |
 | **TEMP**                     | Temperature probe             |
@@ -124,7 +128,7 @@ Insert the stripped wires into the correct terminals on the thermostat, and tigh
 
 ### 4. **Configure the Thermostat**
 
-1. Connect to the **"test"** network using the password: `12345678`.
+1. Connect to the **"Rixen MCS6 Smart Thermostat"** network using the password: `12345678`.
 2. A **captive portal** will load. Select the Wi-Fi network where your **Home Assistant** server is running and provide your credentials.
 3. The thermostat will reboot and connect to your Wi-Fi network.
 
@@ -135,7 +139,7 @@ Insert the stripped wires into the correct terminals on the thermostat, and tigh
 - If you don’t have ESPHome installed in Home Assistant, [follow this guide](https://esphome.io/guides/getting_started_command_line.html) to install it.
 - Once the thermostat is connected to Wi-Fi, you should see it as a **newly discovered ESPHome device** under **Settings → Devices & Services** in Home Assistant.
 - Click **Configure**, and the device will be added to Home Assistant.
-- You should now see the **Undermount AC Climate Component** in Home Assistant, which will control the **Rixen MCS6** system.
+- You should now see the **Rixen MCS6 Climate Component** in Home Assistant, which will control the **Rixen MCS6** system.
 
 ---
 
@@ -149,12 +153,13 @@ Insert the stripped wires into the correct terminals on the thermostat, and tigh
 
 ### 7. **Power On the Rixen MCS6**
 
-1. Switch the power back on to the **Rixen MCS6 controller**.
-2. Wait about 5 minutes for it to boot up.
+If your **Rixen MCS6 controller** is powered seperately from your thermostat, go ahead and apply power.  Wait about 5 minutes or so for it to boot up and settle down.
+
+You've completed installation and now ready to operate!
 
 ---
 
-## Operations
+# Operations
 
 Once installed and configured, the ESPHome thermostat provides the following controls and sensors in Home Assistant:
 
@@ -167,53 +172,79 @@ Once installed and configured, the ESPHome thermostat provides the following con
 | **Humidity Sensor**           | Displays the humidity reading at the probe.                      |
 | **Radiator Fan Speed**        | Displays the radiator fan speed (0-100%).                        |
 
-Congratulations! You have successfully set up the **Undermount AC ESPHome Thermostat Controller** for your **Rixen MCS6**. From here, you can make any further customizations using the YAML configuration in the ESPHome dashboard.
+The system includes the standard Low / Medium / High / Auto fan speeds.
+
+You will find the following diagnostic sensors to understand what is being requested from the MCS6.  These are disabled by default, but can be enabled in the Home Assistant UI.
+
+| **Entity**                    | **Description**                                                   |
+|------------------------------|-------------------------------------------------------------------|
+| **Thermostat Call**              |  Shows if thermostat line is being called on the MCS6   |
+| **Furnace Call**              |  Shows if furnace line is being called on the MCS6   |
+| **Electric Coil Call**              |  Shows if electric coil line is being called on the MCS6   |
+| **Constant Call**              |  Shows if constant line is being called on the MCS6   |
 
 ---
 
-## Auto Fan Logic
+## Auto Fan Speed
 
-The **auto fan speed** is designed to dynamically adjust the radiator fan speed to maintain a consistent and comfortable temperature in your RV. This feature helps **minimize noise** and **maximize comfort**.
-
----
-
-### How It Works
+The **Auto Fan Speed** is designed to dynamically adjust the radiator fan speed to maintain a consistent and comfortable temperature in your RV. This feature helps **minimize noise** and **maximize comfort**.  If you want to understand how it works, the detilas are found in this section.
 
 The auto fan speed is controlled using **PID (Proportional-Integral-Derivative)** control logic:
 
 - **Proportional Control:** The fan speed is adjusted in proportion to the difference between the **set temperature** and the **current temperature**.
 - **Integral Control:** Gradually increases the fan speed as needed to overcome the thermal load and maintain the target temperature over time.
+- **Derivative Control:** Adjusts the fan speed based on how quickly the temperature error is changing. It acts as a damping factor, anticipating future error trends to reduce overshoot and oscillations, thereby stabilizing the system's response.
 
----
-
-### Idle Mode Behavior
-
-- Once the thermostat detects that the **set temperature** has been reached, it will move to **idle mode**, turning off the **furnace** and/or **electric coil**.
-- The **radiator fan** may continue operating during idle mode to maintain your set temperature extractining the remaining heat from the system.
-- The fan will turn off in the following conditions:
-  - If the fan speed reaches **25% or lower**, or
-  - If **10 minutes** have passed while in idle mode.
-
-This prevents the fan from blowing cold air when no additional heat is available.
+The system utilized an enhanced idle mode to extract the residual heat from the system to maintain the set temperature and reduce short cycling.
 
 ---
 
 ### Heat Call Cycle
 
-- When the actual temperature drops to **1°F below the set temperature**, the thermostat will:
+The heat cycle works like any standard thermostat.  There's a overrun of +0.6C above the **set temperature**  and a -0.6C deadband below the **set temperature**.  This reduce cycling when the minimum heat output exceeds the thermal load of the room.
+
+When the actual temperature drops to below **-0.6°F of the set temperature**, the thermostat will:
   - Call for heat by turning on the **furnace**, **electric coil**, and **radiator fan**.
-  - The cycle will continue until the set temperature is reached again.
+
+The **radiator** fan will adjust its speed based on PID control logic to smoothly arrive to the set temperature in 30 second intervals.
+
+Once the **set temperature** has been reached, then fan will reach its minimum speed of 1% and will continue to operate until +0.6C above **set temperature** 
+
+Once the thermostat detects that **+0.6C** above the **set temperature** has been reached, it will move to **idle mode** turning off the **furnace** and/or **electric coil**.
 
 ---
 
-### Notes:
-- The **auto fan logic** has only been tested using **Fahrenheit**. If you plan to use Celsius, additional testing or configuration adjustments may be required.
+### Enhanced Idle Mode (No Constant Heat)
 
+Enhanced Idle Mode continues to operate the fan in a way to maintain your set temperature.
+
+The **radiator fan** will continue to operate during idle mode to maintain your set temperature.
+   - The fan will maintain a speed of 1% when the room is at **set temperature** to +0.6C above **set temperature**.
+   - The fan will increase speed if it detects the room is beginning to fall below the **set temperature**
+     
+The fan will turn off in the following conditions:
+   - The room is warmer than **+0.6C** above the set temperature.
+   - The fan speed reaches above **20%** to prevent cold air from blowing.
+   - If **30 minutes** have passed since idle mode has started to prevent cold air from blowing.
+
+Fan speed and on/off modes only change every 30 seconds.
+
+### Standard Idle Mode (Constant Heat)
+
+If constant mode is on (for constant hot water), the fan will not operating during idle mode.
 
 ---
 ## Hot Water
 
-<insert notes on hot water>
+To request hot water, the user needs to enable their heat source (**furnace** and/or **electric coil**) and enable **Constant**.  Once the system warms up the glycol, the heat exchange block will begin to transfer heat energy.
+
+### Optional Recirculating Pump
+
+Output 6 on the thermostat may be used to turn off/on a relay or PWM controller that drives a recirculating pump if your hot water lines are configured as such.  This is configured but disabled by default.  Simply enable in Home Assistant to use.
+
+A safeguard of 60 seconds of on-time is preconfigured.  You may adjust this to your likely in the ESPHome YAML editor.
+
+You may configure a button in the UI to activate the recirculating pump.  A future enhancement may activate the recirculating pump periodically if 'constant' mode is active.
 
 ---
 # License: Personal Use Only (Non-Commercial)
