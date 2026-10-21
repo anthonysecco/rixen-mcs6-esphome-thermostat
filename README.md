@@ -258,6 +258,10 @@ You can control the recirculating pump in the following ways:
 # Special Shoutout
 A special thanks to Mike Goubeaux for the inspiration with his work in the Undermount AC thermostat and the MCS7 CANbus thermostat.
 
+# AI Disclosure
+
+This project was built largely with AI coding tools (Claude). I directed the design and reviewed the changes, but most of the code and documentation was written by AI. Please review the code before relying on it, and open an issue if you find a problem.
+
 # License: Personal Use Only (Non-Commercial)
 
 This project is released under a **Personal Use License**, which restricts usage to **non-commercial purposes only**. Please read the terms carefully before using or modifying the code.
