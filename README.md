@@ -1,5 +1,7 @@
 # Rixen MCS6 ESPHome Thermostat Controller
 
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-donate-yellow.svg)](https://www.buymeacoffee.com/anthonysecco)
+
 This project implements an ESPHome-based thermostat controller by **Undermount AC** for the **Rixen MCS6 heating system**. 
 
 The Undermount AC thermostat replaces the standard Rixen thermostat so that the Rixen MCS6 can be easily controlled through Home Assistant.  The thermostat that is found in Home Assistant reproduces the original system controls while adding two enhancements.  1) An 'auto' fan speed feature uses PID control logic to adjust the radiator fan speed to maintain the set temperature and 2) an **Enhanced Idle Mode** to reduce system short cycling.
@@ -257,6 +259,10 @@ You can control the recirculating pump in the following ways:
 ---
 # Special Shoutout
 A special thanks to Mike Goubeaux for the inspiration with his work in the Undermount AC thermostat and the MCS7 CANbus thermostat.
+
+# 💖 Support
+
+If you found this project useful, consider [buying me a coffee](https://www.buymeacoffee.com/anthonysecco). ☕
 
 # AI Disclosure
 
