@@ -262,7 +262,9 @@ A special thanks to Mike Goubeaux for the inspiration with his work in the Under
 
 # 💖 Support
 
-If you found this project useful, consider [buying me a coffee](https://www.buymeacoffee.com/anthonysecco). ☕
+If you found this project useful, consider buying me a coffee. ☕
+
+<a href="https://www.buymeacoffee.com/anthonysecco"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" height="60" width="217"></a>
 
 # AI Disclosure
 
